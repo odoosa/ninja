@@ -69,9 +69,9 @@ Dashboard Ninja v15.0,
 
 	'currency': 'EUR',
 
-	'price': '290.4',
+	'price': '363',
 
-	'website': 'https://dn15demo.kappso.com/',
+	'website': 'https://store.ksolves.com/',
 
 	'maintainer': 'Ksolves India Ltd.',
 
@@ -79,11 +79,11 @@ Dashboard Ninja v15.0,
 
 	'category': 'Tools',
 
-	'version': '15.0.1.2.1',
+	'version': '15.0.1.2.6',
 
 	'support': 'sales@ksolves.com',
 
-	'images': ['static/description/dn_sale_opt.gif'],
+	'images': ['static/description/banner.gif'],
 
 	'depends': ['base', 'web', 'base_setup', 'bus'],
 

@@ -330,6 +330,9 @@
                                 <field name="ks_fill_temporal"
                                        context="{'current_id': id}"
                                        attrs="{'invisible':['|','|','|',('ks_dashboard_item_type','in',['ks_list_view','ks_kpi', 'ks_tile']),('ks_chart_groupby_type','!=','date_type'),('ks_chart_date_groupby','in',['minute','hour']),('ks_chart_relation_sub_groupby','!=',False)]}"/>
+                                <field name="ks_as_of_now"
+                                       context="{'current_id': id}"
+                                       attrs="{'invisible':['|','|','|',('ks_dashboard_item_type','in',['ks_list_view','ks_kpi', 'ks_tile']),('ks_chart_groupby_type','!=','date_type'),('ks_chart_date_groupby','in',['minute','hour']),('ks_chart_relation_sub_groupby','!=',False)]}"/>
 
                                 <field name="ks_chart_relation_sub_groupby"
                                        options="{'no_create': True, 'no_create_edit':True, 'no_open': True}"
@@ -563,8 +566,8 @@
                                        attrs="{'invisible':['|','|','|','|',('ks_chart_relation_sub_groupby','!=',False),('ks_model_id','=',False),('ks_dashboard_item_type','=','ks_list_view'),('ks_dashboard_item_type','!=','ks_bar_chart'),('ks_data_calculation_type','!=','custom')]}"/>
                                 <field name="ks_pagination_limit"
                                        attrs="{'invisible':[('ks_dashboard_item_type','!=','ks_list_view')],'required':[('ks_dashboard_item_type','=','ks_list_view')]}"/>
-                                <field name="ks_show_records" force_save="1"
-                                       attrs="{'invisible': [('ks_data_calculation_type','=','query')]}"/>
+<!--                                <field name="ks_show_records" force_save="1"-->
+<!--                                       attrs="{'invisible': [('ks_data_calculation_type','=','query')]}"/>-->
 
                                 <field name="ks_multiplier_active" force_save="1"
                                        attrs="{'invisible': ['|','|','&amp;',('ks_dashboard_item_type','=','ks_list_view'),('ks_list_view_type','=','ungrouped'),('ks_data_calculation_type','=','query'),'&amp;',('ks_dashboard_item_type','in',['ks_list_view','ks_bar_chart','ks_pie_chart','ks_to_do','ks_line_chart', 'ks_area_chart', 'ks_horizontalBar_chart','ks_doughnut_chart','ks_polarArea_chart']),('ks_chart_data_count_type', '=', 'count')]}"/>
@@ -575,6 +578,10 @@
                                         <field name="ks_multiplier_value"/>
                                     </tree>
                                 </field>
+                            </group>
+                            <group>
+                                <field name="ks_show_records" force_save="1"
+                                       attrs="{'invisible': [('ks_data_calculation_type','=','query')]}"/>
                             </group>
                             <group attrs="{'invisible':[('ks_dashboard_item_type','in',['ks_list_view','ks_bar_chart','ks_pie_chart','ks_to_do','ks_line_chart', 'ks_area_chart', 'ks_horizontalBar_chart','ks_doughnut_chart','ks_polarArea_chart'])]}">
                                 <field name="ks_multiplier_active" force_save="1"/>

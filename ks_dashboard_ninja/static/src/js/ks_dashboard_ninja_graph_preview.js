@@ -129,6 +129,21 @@ odoo.define('ks_dashboard_ninja_list.ks_dashboard_graph_preview', function(requi
                     }
                 }
             }
+            if (field.ks_as_of_now){
+                   for (var i=0; i< this.chart_data.datasets.length; i++){
+                    var ks_temp_com = 0
+                    var data = []
+                    var datasets = {}
+                    for (var j=0; j < this.chart_data.datasets[i].data.length; j++)
+                        {
+                            ks_temp_com = ks_temp_com + this.chart_data.datasets[i].data[j];
+                            data.push(ks_temp_com);
+                        }
+                        this.chart_data.datasets[i].data = data.slice(-field.ks_record_data_limit)
+                 }
+              this.chart_data['labels'] = this.chart_data['labels'].slice(-field.ks_record_data_limit)
+
+            }
             if (field.ks_chart_is_cumulative && field.ks_chart_data_count_type == 'count' && field.ks_dashboard_item_type === 'ks_bar_chart'){
 
 

@@ -11,11 +11,9 @@ odoo.define('ks_dn_advance.ks_tv_dashboard', function(require){
 
     KsDashboardNinja.include({
 
-         jsLibs: [
-//         '/ks_dashboard_ninja/static/lib/js/jquery.ui.touch-punch.min.js',
+           jsLibs: [
             '/ks_dashboard_ninja/static/lib/js/Chart.bundle.min.js',
             '/ks_dashboard_ninja/static/lib/js/gridstack-h5.js',
-//            '/ks_dashboard_ninja/static/lib/js/gridstack.jQueryUI.min.js',
             '/ks_dashboard_ninja/static/lib/js/chartjs-plugin-datalabels.js',
             '/ks_dashboard_ninja/static/lib/js/pdfmake.min.js',
             '/ks_dashboard_ninja/static/lib/js/vfs_fonts.js',
@@ -30,6 +28,7 @@ odoo.define('ks_dn_advance.ks_tv_dashboard', function(require){
             'click .ks_dn_asc': '_ksSortAscOrder',
             'click .ks_dn_desc': '_ksSortDescOrder',
             'click .ks_dashboard_print_pdf' : 'ks_dash_print',
+            'click .ks_dashboard_send_email' : 'ks_send_mail',
 
         }),
 
@@ -38,27 +37,99 @@ odoo.define('ks_dn_advance.ks_tv_dashboard', function(require){
             var ks_dashboard_name = self.ks_dashboard_data.name
             setTimeout(function () {
 
-            const Ksinput = document.getElementById('ks_dash1');
-            const KsdivHeight = Ksinput.clientHeight
-            const KsdivWidth = Ksinput.clientWidth
-//            const Ksratio = KsdivHeight / KsdivWidth
+
             window.scrollTo(0, 0);
-            html2canvas(document.querySelector("#ks_dash1"),{scale: 2}).then(canvas => {
-            var ks_image_date = canvas.toDataURL("image/jpeg",1)
-            window.jsPDF = window.jspdf.jsPDF("p", "px", "a4")
-            var pdf = window.jsPDF;
+            html2canvas(document.querySelector('.ks_dashboard_item_content'), {useCORS: true, allowTaint: false}).then(function(canvas){
+            window.jsPDF = window.jspdf.jsPDF;
+            var pdf = new jsPDF("p", "mm", "a4");
+            var ks_img = canvas.toDataURL("image/jpeg", 0.90);
+            var ks_props= pdf.getImageProperties(ks_img);
+            var KspageHeight = 300;
             var KspageWidth = pdf.internal.pageSize.getWidth();
-            var KspageHeight = pdf.internal.pageSize.getHeight();
-            var KsimageWidth = canvas.width;
-            var KsimageHeight = canvas.height;
-            KsimageWidth = KsdivWidth;
-            KsimageHeight  = KsdivHeight;
-            var ratio = KsimageWidth/KsimageHeight >= KspageWidth/KspageHeight ? KspageWidth/KsimageWidth : KspageHeight/KsimageHeight;
-            pdf.addImage(ks_image_date, 'JPEG', 0, 0, KsdivWidth * ratio  , KspageHeight);
+            var ksheight = (ks_props.height * KspageWidth) / ks_props.width;
+            var ksheightLeft = ksheight;
+            var position = 0;
+
+            pdf.addImage(ks_img,'JPEG', 0, 0, KspageWidth, ksheight, 'FAST');
+            ksheightLeft -= KspageHeight;
+            while (ksheightLeft >= 0) {
+                position = ksheightLeft - ksheight;
+                pdf.addPage();
+                pdf.addImage(ks_img, 'JPEG', 0, position,  KspageWidth, ksheight, 'FAST');
+                ksheightLeft -= KspageHeight;
+            };
             pdf.save(ks_dashboard_name + '.pdf');
-        });
+        })
         },500);
         },
+
+        ks_send_mail: function(ev) {
+            var self = this;
+            var ks_dashboard_name = self.ks_dashboard_data.name
+            setTimeout(function () {
+            $('.fa-envelope').addClass('d-none')
+            $('.fa-spinner').removeClass('d-none');
+
+
+            window.scrollTo(0, 0);
+            html2canvas(document.querySelector('.ks_dashboard_item_content'), {useCORS: true, allowTaint: false}).then(function(canvas){
+            window.jsPDF = window.jspdf.jsPDF;
+            var pdf = new jsPDF("p", "mm", "a4");
+            var ks_img = canvas.toDataURL("image/jpeg", 0.90);
+            var ks_props= pdf.getImageProperties(ks_img);
+            var KspageHeight = 300;
+            var KspageWidth = pdf.internal.pageSize.getWidth();
+            var ksheight = (ks_props.height * KspageWidth) / ks_props.width;
+            var ksheightLeft = ksheight;
+            var position = 0;
+
+            pdf.addImage(ks_img,'JPEG', 0, 0, KspageWidth, ksheight, 'FAST');
+            ksheightLeft -= KspageHeight;
+            while (ksheightLeft >= 0) {
+                position = ksheightLeft - ksheight;
+                pdf.addPage();
+                pdf.addImage(ks_img, 'JPEG', 0, position,  KspageWidth, ksheight, 'FAST');
+                ksheightLeft -= KspageHeight;
+            };
+//            pdf.save(ks_dashboard_name + '.pdf');
+            const file = pdf.output()
+            const base64String = btoa(file)
+
+//            localStorage.setItem(ks_dashboard_name + '.pdf',file);
+
+            $.when(base64String).then(function(){
+                self._rpc({
+                    model: 'ks_dashboard_ninja.board',
+                    method: 'ks_dashboard_send_mail',
+                    args: [
+                        [parseInt(self.ks_dashboard_id)],base64String
+
+                    ]
+                }).then(function(res){
+                    $('.fa-envelope').removeClass('d-none')
+                    $('.fa-spinner').addClass('d-none');
+                    if (res['ks_is_send']){
+                        var msg = res['ks_massage']
+                            self.call('notification', 'notify', {
+                                message: msg,
+                                type: 'info',
+                                title: "Success"
+                            });
+                    }else{
+                        var msg = res['ks_massage']
+                            self.call('notification', 'notify', {
+                                message: msg,
+                                type: 'info',
+                                title: "Fail"
+                            });
+                    }
+                });
+             })
+        })
+        },500);
+
+        },
+
        _ksRenderNoItemView: function() {
             $('.ks_dashboard_items_list').remove();
             var self = this;
@@ -491,7 +562,7 @@ odoo.define('ks_dn_advance.ks_tv_dashboard', function(require){
             }
             var item_data = self.ks_dashboard_data.ks_item_data[item_id];
 
-            if (item_data.ks_data_calculation_type === 'custom'){
+            if (item_data && item_data.ks_data_calculation_type === 'custom'){
                 this._super.apply(this,arguments);
             }
         },
@@ -578,10 +649,16 @@ odoo.define('ks_dn_advance.ks_tv_dashboard', function(require){
                     var item_view = self.renderKpi(item_data);
                     self.$el.find(".grid-stack-item[gs-id=" + item_data.id + "]").find(".ks_dashboard_item_hover").replaceWith($(item_view).find('.ks_dashboarditem_id'));
                 } else  if (item_data['ks_dashboard_item_type'] == 'ks_to_do'){
+                    var name = item_data.name ?item_data.name : item_data.ks_model_display_name;
+                    self.$el.find(".grid-stack-item[gs-id=" + item_data.id + "]").find('.ks_list_view_heading').prop('title',name)
+                    self.$el.find(".grid-stack-item[gs-id=" + item_data.id + "]").find('.ks_list_view_heading').text(name);
                     self.$el.find(".grid-stack-item[gs-id=" + item_data.id + "]").find('.ks_to_do_card_body').empty();
                     self.$el.find(".grid-stack-item[gs-id=" + item_data.id + "]").find('.ks_to_do_card_body').append(self.ksRenderToDoDashboardView(item_data)[1]);
                 }else{
                     self.$el.find(".grid-stack-item[gs-id=" + item_data.id + "]").find(".card-body").empty()
+                    var name = item_data.name ?item_data.name : item_data.ks_model_display_name;
+                    self.$el.find(".grid-stack-item[gs-id=" + item_data.id + "]").find('.ks_chart_heading').prop('title',name)
+                    self.$el.find(".grid-stack-item[gs-id=" + item_data.id + "]").find('.ks_chart_heading').text(name)
                     self._renderChart(self.$el.find(".grid-stack-item[gs-id=" + item_data.id + "]"), item_data);
                 }
 
@@ -828,6 +905,21 @@ odoo.define('ks_dn_advance.ks_tv_dashboard', function(require){
                             chart_data.datasets.push(datasets);
                     }
                 }
+            }
+            if (item.ks_as_of_now){
+                   for (var i=0; i< chart_data.datasets.length; i++){
+                    var ks_temp_com = 0
+                    var data = []
+                    var datasets = {}
+                    for (var j=0; j < chart_data.datasets[i].data.length; j++)
+                        {
+                            ks_temp_com = ks_temp_com + chart_data.datasets[i].data[j];
+                            data.push(ks_temp_com);
+                        }
+                        chart_data.datasets[i].data = data.slice(-item.ks_record_data_limit)
+                 }
+              chart_data['labels'] = chart_data['labels'].slice(-item.ks_record_data_limit)
+
             }
             var isDrill = item.isDrill ? item.isDrill : false;
             var chart_id = item.id,

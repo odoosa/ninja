@@ -1,8 +1,12 @@
-from odoo import models, fields, api, _
-from odoo.exceptions import ValidationError
 from odoo.tools.misc import DEFAULT_SERVER_DATETIME_FORMAT, DEFAULT_SERVER_DATE_FORMAT
+from odoo.exceptions import ValidationError
+from odoo import models, fields, api, _
+import traceback
+import logging
 import datetime
 import json
+
+_logger = logging.getLogger(__name__)
 
 
 class KsDashboardNinjaAdvance(models.Model):
@@ -16,6 +20,10 @@ class KsDashboardNinjaAdvance(models.Model):
                                           ('45000', '45 Seconds'),
                                           ('60000', '1 minute'),
                                           ], string="Slide Interval", default = '5000')
+    ks_mail_to_partner = fields.Many2one('res.partner', string='Email To', domain=[('email', '!=', False)])
+    ks_mail_to_cc_partner = fields.Many2many('res.partner', 'res_partner_dashboard_ninja', 'partner_id', 'board_id',
+                                             domain=[('email', '!=', False)], string='Email Cc')
+    ks_mail_email_cc_value = fields.Text(string='Email CC Value')
 
     def ks_fetch_item_data(self, rec, params={}):
          item = super(KsDashboardNinjaAdvance, self).ks_fetch_item_data(rec, params)
@@ -143,8 +151,20 @@ class KsDashboardNinjaAdvance(models.Model):
         if 'ks_file_format' in ks_dashboard_file_read and ks_dashboard_file_read[
             'ks_file_format'] == 'ks_dashboard_ninja_export_file':
             ks_dashboard_data = ks_dashboard_file_read['ks_dashboard_data']
+            for i in range(len(ks_dashboard_data)):
+                if 'ks_set_interval' in ks_dashboard_data[i].keys() and ks_dashboard_data[i].get('ks_item_data', False):
+                    # del ks_dashboard_data[i]['ks_set_interval']
+                    for j in range(len(ks_dashboard_data[i].get('ks_item_data', False))):
+                        if 'ks_update_items_data' in ks_dashboard_data[i].get('ks_item_data', False)[j].keys():
+                            del ks_dashboard_data[i].get('ks_item_data', False)[j]['ks_update_items_data']
+                        if 'ks_auto_update_type' in ks_dashboard_data[i].get('ks_item_data', False)[j].keys():
+                            del ks_dashboard_data[i].get('ks_item_data', False)[j]['ks_auto_update_type']
+                        if 'ks_show_live_pop_up' in ks_dashboard_data[i].get('ks_item_data', False)[j].keys():
+                            del ks_dashboard_data[i].get('ks_item_data', False)[j]['ks_show_live_pop_up']
         else:
             raise ValidationError(_("Current Json File is not properly formatted according to Dashboard Ninja Model."))
+
+
 
         ks_dashboard_key = ['name', 'ks_dashboard_menu_name', 'ks_gridstack_config']
         ks_dashboard_item_key = ['ks_model_id', 'ks_chart_measure_field', 'ks_list_view_fields', 'ks_record_field',
@@ -198,3 +218,55 @@ class KsDashboardNinjaAdvance(models.Model):
 
         return "Success"
         # separate function to make item for import
+    def ks_dashboard_send_mail(self, file):
+        ks_mail_validate = self.ks_email_validation()
+        if ks_mail_validate:
+            try:
+                pdf_b64 = file
+                attachment = {
+                    'name': str(self.name),
+                    'datas': pdf_b64,
+                    'res_model': 'ks_dashboard_ninja_board',
+                    'type': 'binary',
+                    'mimetype': 'application/pdf',
+
+                }
+                self.env.user
+                ks_attachment = self.env['ir.attachment'].create(attachment)
+                ks_mail_template = self.env.ref('ks_dn_advance.ks_mail_templates')
+                ks_mail_template.attachment_ids = [(6, 0, [ks_attachment.id])]
+                ks_ctx = {'ks_report_name': self.name if self.name else "My Dashboard"}
+                if ks_mail_template:
+                    try:
+                        ks_mail_template.with_context(ks_ctx).send_mail(self.id, force_send=True)
+                        return {'ks_is_send': True,
+                                'ks_massage': _("Email has been sent")
+                                }
+                    except Exception as e:
+                        _logger.error(traceback.format_exc())
+                        return {'ks_is_send': False,
+                                'ks_massage': _("Email has not been sent.Please check your console log")
+                                }
+            except Exception as e:
+                return {'ks_is_send': False,
+                        'ks_massage': _("Email has not been sent.Please check your console log.")
+                        }
+                _logger.error(traceback.format_exc())
+        else:
+            return {'ks_is_send': False,
+                    'ks_massage': _("Please fill the email to form the dashboard configuration")
+                    }
+
+    def ks_email_validation(self):
+        if not self.ks_mail_to_partner:
+            # raise ValidationError()
+            return False
+        else:
+            return True
+
+    @api.onchange('ks_mail_to_cc_partner')
+    def onchange_ks_mail_to_cc_partner(self):
+        ks_user_mails = ''
+        for partner in self.ks_mail_to_cc_partner:
+            ks_user_mails += partner.email + ' ' + ','
+        self.ks_mail_email_cc_value = ks_user_mails

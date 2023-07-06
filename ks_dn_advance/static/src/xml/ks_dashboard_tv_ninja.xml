@@ -73,6 +73,10 @@
                     Print Dashboard
                 </button>
             </t>
+            <button class="btn btn-primary ks_dashboard_send_email mr-2 d-md-block" aria-expanded="false">
+                <span class="fa fa-envelope"/>
+                <span class="fa fa-spinner fa-spin d-none"/>
+            </button>
         </t>
     </t>
     <t t-extend="ks_main_body_container">

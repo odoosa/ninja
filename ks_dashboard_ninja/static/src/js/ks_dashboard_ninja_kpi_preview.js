@@ -195,13 +195,24 @@ odoo.define('ks_dashboard_ninja_list.ks_dashboard_kpi_preview', function(require
                 count_1 = count_1 * field.ks_multiplier;
                 count_2 = count_2 * field.ks_multiplier;
             }
-            var count = parseInt((count_1 / count_2) * 100);
-            if (field.ks_multiplier_active){
-                count = count * field.ks_multiplier;
+            if (field.ks_data_format == 'exact'){
+//                var count = parseInt((count_1 / count_2) * 100);
+                var tool_tip = (count_1 / count_2) * 100
+                var count = field_utils.format.float((count_1 / count_2) * 100, Float64Array,{digits: [0, field.ks_precision_digits]});
+                if (field.ks_multiplier_active){
+                    count = count * field.ks_multiplier;
+                }
+                item_info['count'] = count ? count + "%" : "0%";
+                item_info['count_tooltip'] = count ? String(tool_tip) + "%" : "0%";
+            }else {
+                var count = parseInt((count_1 / count_2) * 100);
+                if (field.ks_multiplier_active){
+                    count = count * field.ks_multiplier;
+                }
+                item_info['count'] = count ? field_utils.format.integer(count) + "%" : "0%";
+                item_info['count_tooltip'] = count ? count + "%" : "0%";
             }
-            if (!count) count = 0;
-            item_info['count'] = count ? field_utils.format.integer(count) + "%" : "0%";
-            item_info['count_tooltip'] = count ? count + "%" : "0%";
+
             item_info.target_progress_deviation = item_info['count']
             target_1 = target_1 > 100 ? 100 : target_1;
             item_info.target = target_1 + "%";

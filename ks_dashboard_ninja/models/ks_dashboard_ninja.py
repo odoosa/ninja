@@ -182,6 +182,8 @@ class KsDashboardNinjaBoard(models.Model):
 
             if 'ks_dashboard_menu_sequence' in vals:
                 rec.ks_dashboard_menu_id.sudo().sequence = vals['ks_dashboard_menu_sequence']
+            if 'name' in vals:
+                self.ks_dashboard_client_action_id.name = vals['name']
 
         return record
 
@@ -437,7 +439,8 @@ class KsDashboardNinjaBoard(models.Model):
             'ks_currency_symbol': ks_currency_symbol,
             'ks_currency_position': ks_currency_position,
             'ks_precision_digits': ks_precision_digits if ks_precision_digits else 2,
-            'ks_data_label_type': rec.ks_data_label_type
+            'ks_data_label_type': rec.ks_data_label_type,
+            'ks_as_of_now': rec.ks_as_of_now,
         }
         return item
 
@@ -604,6 +607,7 @@ class KsDashboardNinjaBoard(models.Model):
         except Exception as e:
             ks_list_view_field = []
         val = str(rec.id)
+        keys_data = {}
         selecred_rec = self.env['ks_dashboard_ninja.child_board'].search(
             [['id', 'in', rec.ks_dashboard_ninja_board_id.ks_child_dashboard_ids.ids], ['ks_active', '=', True],
              ['company_id', '=', self.env.company.id]], limit=1)
@@ -613,8 +617,11 @@ class KsDashboardNinjaBoard(models.Model):
             keys_data = json.loads(selecred_rec.ks_gridstack_config)
         elif rec.ks_dashboard_ninja_board_id.ks_child_dashboard_ids[0].ks_gridstack_config:
             keys_data = json.loads(rec.ks_dashboard_ninja_board_id.ks_child_dashboard_ids[0].ks_gridstack_config)
+        elif self._context.get('gridstack_config', False):
+            keys_data = self._context.get('gridstack_config', False)
         else:
-            keys_data = {rec.id: json.loads(rec.grid_corners.replace("\'", "\""))}
+            if rec.grid_corners:
+                keys_data = {rec.id: json.loads(rec.grid_corners.replace("\'", "\""))}
         keys_list = keys_data.keys()
         grid_corners = {}
         if val in keys_list:
@@ -707,7 +714,8 @@ class KsDashboardNinjaBoard(models.Model):
             'ks_multiplier_active': rec.ks_multiplier_active,
             'ks_multiplier': rec.ks_multiplier,
             'ks_multiplier_lines': ks_multiplier_lines if ks_multiplier_lines else False,
-            'ks_many2many_field_ordering': rec.ks_many2many_field_ordering,
+            'ks_data_label_type': rec.ks_data_label_type,
+            'ks_as_of_now': rec.ks_as_of_now,
         }
         if grid_corners:
             item.update({
@@ -837,6 +845,16 @@ class KsDashboardNinjaBoard(models.Model):
         if 'ks_file_format' in ks_dashboard_file_read and ks_dashboard_file_read[
             'ks_file_format'] == 'ks_dashboard_ninja_export_file':
             ks_dashboard_data = ks_dashboard_file_read['ks_dashboard_data']
+            for i in range(len(ks_dashboard_data)):
+                if 'ks_set_interval' in ks_dashboard_data[i].keys() and ks_dashboard_data[i].get('ks_item_data', False):
+                    # del ks_dashboard_data[i]['ks_set_interval']
+                    for j in range(len(ks_dashboard_data[i].get('ks_item_data', False))):
+                        if 'ks_update_items_data' in ks_dashboard_data[i].get('ks_item_data', False)[j].keys():
+                            del ks_dashboard_data[i].get('ks_item_data', False)[j]['ks_update_items_data']
+                        if 'ks_auto_update_type' in ks_dashboard_data[i].get('ks_item_data', False)[j].keys():
+                            del ks_dashboard_data[i].get('ks_item_data', False)[j]['ks_auto_update_type']
+                        if 'ks_show_live_pop_up' in ks_dashboard_data[i].get('ks_item_data', False)[j].keys():
+                            del ks_dashboard_data[i].get('ks_item_data', False)[j]['ks_show_live_pop_up']
         else:
             raise ValidationError(_("Current Json File is not properly formatted according to Dashboard Ninja Model."))
 
@@ -1017,7 +1035,7 @@ class KsDashboardNinjaBoard(models.Model):
         try:
             ks_measure_field_ids = []
             ks_measure_field_2_ids = []
-            ks_many2many_field_ordering = item['ks_many2many_field_ordering']
+            ks_many2many_field_ordering = item['ks_many2many_field_ordering'] if item.get('ks_many2many_field_ordering', False) else False
             ks_list_view_group_fields_name = False
             ks_list_view_fields_name = False
             ks_chart_measure_field_name = False

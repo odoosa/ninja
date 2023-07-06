@@ -62,13 +62,13 @@ return KsDashboard.include({
                         var $to_do_preview = self.ksRenderToDoDashboardView(items[i])[0];
                         if (items[i].id in self.gridstackConfig) {
                             if (config.device.isMobile){
-                                self.grid.addWidget($to_do_preview[0], {x:self.gridstackConfig[items[i].id].x, y:self.gridstackConfig[items[i].id].y, w:self.gridstackConfig[items[i].id].w, h:self.gridstackConfig[items[i].id].h, autoPosition:true, minW:5, maxW:null, minH:2, maxH:null, id:items[i].id});
+                                self.grid.addWidget($to_do_preview[0], {x:self.gridstackConfig[items[i].id].x, y:self.gridstackConfig[items[i].id].y, w:self.gridstackConfig[items[i].id].w, h:self.gridstackConfig[items[i].id].h, autoPosition:true, minW:3, maxW:null, minH:2, maxH:null, id:items[i].id});
                              }
                              else{
-                                self.grid.addWidget($to_do_preview[0], {x:self.gridstackConfig[items[i].id].x, y:self.gridstackConfig[items[i].id].y, w:self.gridstackConfig[items[i].id].w, h:self.gridstackConfig[items[i].id].h, autoPosition:false, minW:5, maxW:null, minH:2, maxH:null, id:items[i].id});
+                                self.grid.addWidget($to_do_preview[0], {x:self.gridstackConfig[items[i].id].x, y:self.gridstackConfig[items[i].id].y, w:self.gridstackConfig[items[i].id].w, h:self.gridstackConfig[items[i].id].h, autoPosition:false, minW:3, maxW:null, minH:2, maxH:null, id:items[i].id});
                              }
                         } else {
-                            self.grid.addWidget($to_do_preview[0], {x:0, y:0, w:6, h:4, autoPosition:true, minW:5, maxW:null, minH:2, maxH:null, id:items[i].id})
+                            self.grid.addWidget($to_do_preview[0], {x:0, y:0, w:6, h:4, autoPosition:true, minW:3, maxW:null, minH:2, maxH:null, id:items[i].id})
                         }
                     } else {
                         self._renderGraph(items[i], self.grid)

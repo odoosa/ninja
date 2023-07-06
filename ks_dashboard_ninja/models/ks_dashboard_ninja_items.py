@@ -199,7 +199,7 @@ class KsDashboardNinjaItems(models.Model):
 
     ks_model_id_2 = fields.Many2one('ir.model', string='Kpi Model',
                                     domain="[('access_ids','!=',False),('transient','=',False),"
-                                           "('model','not ilike','base_import%'),('model','not ilike','ir.%'),"
+                                           "('model','not ilike','base_import%'),'|',('model','not ilike','ir.%'),('model','=ilike','_%ir.%'),"
                                            "('model','not ilike','web_editor.%'),('model','not ilike','web_tour.%'),"
                                            "('model','!=','mail.thread'),('model','not ilike','ks_dash%'), ('model','not ilike','ks_to%')]")
 
@@ -579,6 +579,8 @@ class KsDashboardNinjaItems(models.Model):
     ks_data_label_type = fields.Selection([('percent', 'Percent'), ('value', 'Value')], string='Show Data Value Type',
                                           help='When "Show Data Value Type" selected this field enables to select label type in percent or value',
                                           default='percent')
+    ks_as_of_now = fields.Boolean("Data Till Now",
+                                  help="Display the total sum of each legends as it grows with times")
 
     @api.onchange('ks_year_period', 'ks_year_period_2')
     def ks_year_neg_val_not_allow(self):
@@ -1201,8 +1203,7 @@ class KsDashboardNinjaItems(models.Model):
             ks_extensiom_domain = ks_extensiom_domain.replace('"%UID"', str(self.env.user.id))
             if "%UID" in ks_extensiom_domain:
                 ks_extensiom_domain = ks_extensiom_domain.replace("'%UID'", str(self.env.user.id))
-                print(ks_extensiom_domain)
-
+                
         if ks_extensiom_domain and "%MYCOMPANY" in ks_extensiom_domain:
             ks_extensiom_domain = ks_extensiom_domain.replace('"%MYCOMPANY"', str(self.env.company.id))
             if "%MYCOMPANY" in ks_extensiom_domain:
@@ -1301,12 +1302,9 @@ class KsDashboardNinjaItems(models.Model):
                 rec.ks_goal_lines = False
                 rec.ks_goal_enable = False
                 rec.ks_fill_temporal = False
+                rec.ks_as_of_now = False
 
-
-
-
-
-    @api.onchange('ks_chart_relation_sub_groupby', 'ks_fill_temporal', 'ks_goal_lines')
+    @api.onchange('ks_chart_relation_sub_groupby', 'ks_fill_temporal','ks_as_of_now', 'ks_goal_lines')
     def ks_empty_limit(self):
         for rec in self:
             if rec.ks_chart_relation_sub_groupby or rec.ks_fill_temporal or rec.ks_goal_lines:
@@ -1314,6 +1312,7 @@ class KsDashboardNinjaItems(models.Model):
             if rec.ks_chart_relation_sub_groupby:
                 rec.ks_chart_cumulative_field = False
                 rec.ks_fill_temporal = False
+                rec.ks_as_of_now = False
 
     @api.depends('ks_chart_relation_sub_groupby')
     def get_chart_sub_groupby_type(self):
@@ -1432,6 +1431,8 @@ class KsDashboardNinjaItems(models.Model):
             if rec.ks_sort_by_order:
                 orderby = orderby + " " + rec.ks_sort_by_order
             limit = rec.ks_record_data_limit if rec.ks_record_data_limit and rec.ks_record_data_limit > 0 else 5000
+            if rec.ks_as_of_now:
+                limit=5000
 
             if ((rec.ks_chart_data_count_type != "count" and ks_chart_measure_field) or (
                     rec.ks_chart_data_count_type == "count" and not ks_chart_measure_field)) \
@@ -2458,6 +2459,7 @@ class KsDashboardNinjaItems(models.Model):
             if rec.ks_dashboard_item_type == 'ks_to_do':
                 rec.ks_model_id_2 = False
                 rec.ks_model_id = False
+                rec.ks_data_calculation_type = 'custom'
 
     #  Time Filter Calculation
 

@@ -295,7 +295,6 @@ class KsDashboardNinjaItemAdvance(models.Model):
                                 'Wrong date variables, Please use ks_start_date and ks_end_date in custom query'))
                         raise ValidationError(_(e))
                     finally:
-                        # conn.cursor().close()
                         new_env.close()
 
                     for res in records:
@@ -322,15 +321,22 @@ class KsDashboardNinjaItemAdvance(models.Model):
     def ks_get_kpi_result(self, ks_query, selected_start_date, selected_end_date, ks_start_date=False,
                           ks_end_date=False):
 
-        conn = sql_db.db_connect(self.env.cr.dbname)
-        new_env = api.Environment(conn.cursor(), self.env.uid,
-                                  self.env.context)
+        new_env = self.env
         if ks_query and "{#MYCOMPANY}" in ks_query:
             ks_query = ks_query.replace("{#MYCOMPANY}", str(self.env.user.company_id.id))
         if ks_query and "{#UID}" in ks_query:
             ks_query = ks_query.replace("{#UID}", str(self.env.user.id))
+
         start_date = selected_start_date
         end_date = selected_end_date
+
+        if not selected_start_date and selected_end_date:
+            start_date = selected_end_date - relativedelta.relativedelta(
+                years=1000)
+        if not selected_end_date and selected_start_date:
+            end_date = selected_start_date + relativedelta.relativedelta(
+                years=1000)
+
         self.ks_validate_kpi_query(ks_query, start_date, end_date, ks_start_date=ks_start_date,
                                    ks_end_date=ks_end_date)
         if self.ks_is_date_ranges:
@@ -342,8 +348,6 @@ class KsDashboardNinjaItemAdvance(models.Model):
             new_env.cr.execute("with ks_list_query as (" + ks_query + ")" + "select * from ks_list_query")
 
         result = new_env.cr.dictfetchone()
-        conn.cursor().close()
-        new_env.cr.closed
         if len(result.keys()) == 1:
             return result
         else:
@@ -352,9 +356,8 @@ class KsDashboardNinjaItemAdvance(models.Model):
     def ks_validate_kpi_query(self, ks_query, start_date, end_date, ks_start_date=False,
                               ks_end_date=False):
         try:
-            conn = sql_db.db_connect(self.env.cr.dbname)
-            new_env = api.Environment(conn.cursor(), self.env.uid,
-                                      self.env.context)
+
+            new_env = self.env
             if self.ks_is_date_ranges:
                 new_env.cr.execute("with ks_list_query as (" + ks_query + ")" + "select * from ks_list_query limit 5"
                                    , {ks_start_date: str(start_date),
@@ -378,9 +381,7 @@ class KsDashboardNinjaItemAdvance(models.Model):
                 raise ValidationError(
                     _('Wrong date variables, Please use ks_start_date and ks_end_date in custom query'))
             raise ValidationError(_(e))
-        finally:
-            conn.cursor().close()
-            new_env.cr.closed
+
 
     def ks_get_list_query_result(self, ks_query, selected_start_date, selected_end_date, ks_offset=0,
                                  ks_export_all=False):
@@ -500,8 +501,6 @@ class KsDashboardNinjaItemAdvance(models.Model):
                         'Wrong date variables, Please use ks_start_date and ks_end_date or ks_start_datetime and ks_end_datetime in custom query'))
             raise ValidationError(_(e))
         finally:
-            # conn.cursor().close()
-            # new_env.cr.closed
             new_env.close()
 
         for res in records:
