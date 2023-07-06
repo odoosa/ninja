@@ -1181,7 +1181,7 @@ odoo.define('ks_dashboard_ninja.ks_dashboard', function(require) {
               chart_data['labels'] = chart_data['labels'].slice(-item.ks_record_data_limit)
 
             }
-            if (item.ks_chart_is_cumulative && item.ks_chart_data_count_type == 'count' && item.ks_dashboard_item_type === 'ks_bar_chart'){
+            if (item.ks_chart_is_cumulative && item.ks_chart_data_count_type == 'count' && item.ks_dashboard_item_type === 'ks_bar_chart' && chart_data.datasets[0] && chart_data.datasets[0].data){
                 var ks_temp_com = 0
                 var data = []
                 var datasets = {}

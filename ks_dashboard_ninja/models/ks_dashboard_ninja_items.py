@@ -1141,8 +1141,14 @@ class KsDashboardNinjaItems(models.Model):
                         if ks_compare_period > 100:
                             ks_compare_period = 100
                         if rec.ks_compare_period > 0:
-                            selected_end_date = selected_end_date + (
-                                    selected_end_date - selected_start_date) * ks_compare_period
+                            if rec.ks_date_filter_field.ttype == 'date' and rec.ks_date_filter_selection != 'l_day':
+                                selected_end_date = ks_convert_into_local(
+                                    selected_end_date + timedelta(hours=23) + timedelta(minutes=59) + timedelta(
+                                        seconds=59), self._context.get('tz') or self.env.user.tz) + (
+                                            selected_end_date - selected_start_date) * ks_compare_period
+                            else:
+                                selected_end_date = selected_end_date + (
+                                        selected_end_date - selected_start_date) * ks_compare_period
                             if rec.ks_date_filter_field.ttype == "date" and rec.ks_date_filter_selection == 'l_day':
                                 selected_end_date = selected_end_date + timedelta(days=ks_compare_period)
                         elif rec.ks_compare_period < 0:
@@ -1369,7 +1375,7 @@ class KsDashboardNinjaItems(models.Model):
                 if not rec.ks_sort_by_field:
                     ks_chart_measure_field_with_type.append('count:count(id)')
                 elif rec.ks_sort_by_field:
-                    if not rec.ks_sort_by_field.ttype == "datetime":
+                    if not (rec.ks_sort_by_field.ttype == "datetime" or rec.ks_sort_by_field.ttype =='date'):
                         ks_chart_measure_field_with_type.append(rec.ks_sort_by_field.name + ':' + 'sum')
                     else:
                         ks_chart_measure_field_with_type.append(rec.ks_sort_by_field.name)
@@ -1508,9 +1514,12 @@ class KsDashboardNinjaItems(models.Model):
                             labels = self.generate_timeserise(ks_date_data['start_date'], ks_date_data['end_date'],
                                                               ks_chart_date_groupby)
 
-                        ks_goal_records = self.env['ks_dashboard_ninja.item_goal'].read_group(
-                            ks_goal_domain, ['ks_goal_value'],
-                            ['ks_goal_date' + ":" + ks_chart_date_groupby], lazy=False)
+                        try:
+                            ks_goal_records = self.env['ks_dashboard_ninja.item_goal'].read_group(
+                                ks_goal_domain, ['ks_goal_value'],
+                                ['ks_goal_date' + ":" + ks_chart_date_groupby], lazy=False)
+                        except Exception as e:
+                            ks_goal_records = []
                         ks_goal_labels = []
                         ks_goal_dataset = []
                         goal_dataset = []
@@ -1761,10 +1770,11 @@ class KsDashboardNinjaItems(models.Model):
                                         labels.append(str(res[ks_chart_groupby_relation_fields[1]]))
                                 elif rec.ks_chart_sub_groupby_type == 'selection':
                                     selection = res[ks_chart_groupby_relation_fields[1]]
-                                    labels.append(dict(self.env[rec.ks_model_name].fields_get(
-                                        allfields=[ks_chart_groupby_relation_fields[1]])
-                                                       [ks_chart_groupby_relation_fields[1]]['selection'])[
-                                                      selection])
+                                    if selection:
+                                        labels.append(dict(self.env[rec.ks_model_name].fields_get(
+                                            allfields=[ks_chart_groupby_relation_fields[1]])
+                                                           [ks_chart_groupby_relation_fields[1]]['selection'])[
+                                                          selection])
                                 elif rec.ks_chart_sub_groupby_type == 'relational_type':
                                     if res[ks_chart_groupby_relation_fields[1]] is not False:
                                         labels.append(res[ks_chart_groupby_relation_fields[1]][1]._value)
@@ -2733,9 +2743,15 @@ class KsDashboardNinjaItems(models.Model):
                         if ks_compare_period_2 > 100:
                             ks_compare_period_2 = 100
                         if rec.ks_compare_period_2 > 0:
-                            selected_end_date = selected_end_date + (
+                            if rec.ks_date_filter_field_2.ttype == 'date' and rec.ks_date_filter_selection_2 != 'l_day':
+                                selected_end_date = ks_convert_into_local(
+                                    selected_end_date + timedelta(hours=23) + timedelta(minutes=59) + timedelta(
+                                        seconds=59), self._context.get('tz') or self.env.user.tz) + (
+                                            selected_end_date - selected_start_date) * ks_compare_period_2
+                            else:
+                                selected_end_date = selected_end_date + (
                                     selected_end_date - selected_start_date) * ks_compare_period_2
-                            if rec.ks_date_filter_field.ttype == "date" and rec.ks_date_filter_selection == 'l_day':
+                            if rec.ks_date_filter_field_2.ttype == "date" and rec.ks_date_filter_selection_2 == 'l_day':
                                 selected_end_date = selected_end_date + timedelta(days=ks_compare_period_2)
                         elif rec.ks_compare_period_2 < 0:
                             selected_start_date = selected_start_date - (
@@ -3219,13 +3235,16 @@ class KsDashboardNinjaItems(models.Model):
         #                                                         order='ks_goal_date DESC')['ks_goal_date']
         # else:
 
-        goal_model_start_date = \
-            self.env['ks_dashboard_ninja.item_goal'].search(ks_goal_domain, limit=1,
-                                                            order='ks_goal_date ASC')['ks_goal_date']
-        goal_model_end_date = \
-            self.env['ks_dashboard_ninja.item_goal'].search(ks_goal_domain, limit=1,
+        try:
+            goal_model_start_date = \
+                self.env['ks_dashboard_ninja.item_goal'].search(ks_goal_domain, limit=1,
+                                                                order='ks_goal_date ASC')['ks_goal_date']
+            goal_model_end_date = \
+                self.env['ks_dashboard_ninja.item_goal'].search(ks_goal_domain, limit=1,
                                                             order='ks_goal_date DESC')['ks_goal_date']
-
+        except Exception as e:
+            goal_model_start_date = False
+            goal_model_end_date = False
         if model_field_start_date and ttype == "date":
             model_field_end_date = datetime.combine(model_field_end_date, datetime.min.time())
             model_field_start_date = datetime.combine(model_field_start_date, datetime.min.time())
