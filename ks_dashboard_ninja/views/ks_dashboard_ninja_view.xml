@@ -5,7 +5,7 @@
             <field name="name">ks_dashboard_ninja View</field>
             <field name="model">ks_dashboard_ninja.board</field>
             <field name="arch" type="xml">
-                <form string="Dashboards">
+                <form string="Dashboards" duplicate="false">
                     <sheet>
                         <group>
                             <group>

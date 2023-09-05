@@ -89,7 +89,7 @@
 
     'depends': ['base', 'web', 'base_setup', 'bus', 'ks_dashboard_ninja'],
 
-    'images': ['static/description/Top_apps.gif'],
+    'images': ['static/description/banner.png'],
 
     'assets': {'web.assets_backend': ['ks_dn_live_update/static/src/js/ks_dn_live_update_notification.js']},
 }

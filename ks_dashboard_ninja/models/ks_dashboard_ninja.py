@@ -441,6 +441,9 @@ class KsDashboardNinjaBoard(models.Model):
             'ks_precision_digits': ks_precision_digits if ks_precision_digits else 2,
             'ks_data_label_type': rec.ks_data_label_type,
             'ks_as_of_now': rec.ks_as_of_now,
+            'ks_info': rec.ks_info,
+            'ks_company': rec.ks_company_id.name if rec.ks_company_id else False,
+
         }
         return item
 

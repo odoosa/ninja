@@ -81,6 +81,12 @@ return KsDashboard.include({
             var self = this;
             var item_title = item.name;
             var item_id = item.id;
+            if (item.ks_info){
+                var ks_description = item.ks_info.split('\n');
+                var ks_description = ks_description.filter(element => element !== '')
+            }else {
+                var ks_description = false;
+            }
             var list_to_do_data = JSON.parse(item.ks_to_do_data)
             var ks_header_color = self._ks_get_rgba_format(item.ks_header_bg_color);
             var ks_font_color = self._ks_get_rgba_format(item.ks_font_color);
@@ -93,7 +99,9 @@ return KsDashboard.include({
                 ks_dashboard_list: self.ks_dashboard_data.ks_dashboard_list,
                 item_id: item_id,
                 to_do_view_data: list_to_do_data,
-                 ks_rgba_button_color:ks_rgba_button_color,
+                ks_rgba_button_color:ks_rgba_button_color,
+                ks_info: ks_description,
+                ks_company:item.ks_company
             })).addClass('ks_dashboarditem_id')
             $ks_gridstack_container.find('.ks_card_header').addClass('ks_bg_to_color').css({"background-color": ks_header_color });
             $ks_gridstack_container.find('.ks_card_header').addClass('ks_bg_to_color').css({"color": ks_font_color + ' !important' });
