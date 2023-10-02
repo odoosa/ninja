@@ -69,7 +69,7 @@ Dashboard Ninja v15.0,
 
 	'currency': 'EUR',
 
-	'price': '308.55',
+	'price': '272.29',
 
 	'website': 'https://store.ksolves.com/',
 
@@ -83,7 +83,7 @@ Dashboard Ninja v15.0,
 
 	'support': 'sales@ksolves.com',
 
-	'images': ['static/description/Independence_Dashboard_ninja_sale.gif'],
+	'images': ['static/description/DN_with_AI.gif'],
 
 	'depends': ['base', 'web', 'base_setup', 'bus'],
 
