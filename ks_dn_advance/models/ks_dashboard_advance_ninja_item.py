@@ -62,11 +62,36 @@ class KsDashboardNinjaItemAdvance(models.Model):
             ks_kpi_data = False
         return ks_kpi_data
 
-    @api.depends('ks_custom_query', 'ks_data_calculation_type', 'ks_query_result', 'ks_xlabels', 'ks_ylabels',
+    @api.depends('ks_chart_measure_field', 'ks_map_record_field', 'ks_funnel_record_field', 'ks_chart_cumulative_field',
+                 'ks_chart_relation_groupby',
+                 'ks_chart_date_groupby', 'ks_domain', 'ks_dashboard_item_type', 'ks_model_id', 'ks_sort_by_field',
+                 'ks_sort_by_order',
+                 'ks_record_data_limit', 'ks_chart_data_count_type', 'ks_chart_measure_field_2', 'ks_goal_enable',
+                 'ks_standard_goal_value', 'ks_goal_bar_line', 'ks_chart_relation_sub_groupby',
+                 'ks_chart_date_sub_groupby',
+                 'ks_date_filter_field', 'ks_item_start_date', 'ks_item_end_date', 'ks_compare_period',
+                 'ks_year_period',
+                 'ks_unit', 'ks_unit_selection', 'ks_chart_unit', 'ks_fill_temporal', 'ks_domain_extension',
+                 'ks_multiplier_active',
+                 'ks_multiplier_lines', 'ks_scatter_measure_x_id', 'ks_scatter_measure_y_id',
+                 'ks_custom_query', 'ks_data_calculation_type', 'ks_query_result', 'ks_xlabels', 'ks_ylabels',
                  'ks_bar_chart_stacked')
     def ks_get_chart_data(self):
         for rec in self:
-            rec.ks_chart_data = rec._ks_get_chart_data(domain=[])
+            if rec.ks_dashboard_item_type == "ks_funnel_chart":
+                rec.ks_sort_by_order = "DESC"
+                rec.ks_sort_by_field = rec.ks_funnel_record_field
+                rec.ks_chart_measure_field = rec.ks_funnel_record_field
+                rec.ks_chart_data = rec._ks_get_chart_data(domain=[])
+            elif rec.ks_dashboard_item_type == "ks_map_view":
+                rec.ks_chart_measure_field = rec.ks_map_record_field
+                rec.ks_chart_data = rec._ks_get_chart_data(domain=[])
+            elif rec.ks_dashboard_item_type == "ks_scatter_chart":
+                rec.ks_chart_measure_field = rec.ks_scatter_measure_x_id
+                rec.ks_chart_relation_groupby = rec.ks_scatter_measure_y_id
+                rec.ks_chart_data = rec._ks_get_chart_data(domain=[])
+            else:
+                rec.ks_chart_data = rec._ks_get_chart_data(domain=[])
 
     def _ks_get_chart_data(self, domain=[]):
         for rec in self:

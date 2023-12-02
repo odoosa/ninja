@@ -149,7 +149,7 @@
                         </button>
                         <ul id="ks_add_item_selection" class="dropdown-menu"
                             role="menu">
-                            <li data-item="ks_tile">
+                            <li id="ks_tile" data-item="ks_tile">
                                 <span class="df_selection_text">
                                     Tile
                                 </span>
@@ -192,6 +192,41 @@
                             <li data-item="ks_list_view">
                                 <span class="df_selection_text">
                                     List View
+                                </span>
+                            </li>
+                            <li data-item="ks_flower_view">
+                                <span class="df_selection_text">
+                                    Flower View
+                                </span>
+                            </li>
+                            <li data-item="ks_radialBar_chart">
+                                <span class="df_selection_text">
+                                    Radial Bar Chart
+                                </span>
+                            </li>
+                            <li data-item="ks_funnel_chart">
+                                <span class="df_selection_text">
+                                    Funnel Chart
+                                </span>
+                            </li>
+                            <li data-item="ks_bullet_chart">
+                                <span class="df_selection_text">
+                                    Bullet Chart
+                                </span>
+                            </li>
+                            <li data-item="ks_scatter_chart">
+                                <span class="df_selection_text">
+                                    Scatter Chart
+                                </span>
+                            </li>
+                            <li data-item="ks_radar_view">
+                                <span class="df_selection_text">
+                                    Radar View
+                                </span>
+                            </li>
+                            <li data-item="ks_map_view">
+                                <span class="df_selection_text">
+                                    Map View
                                 </span>
                             </li>
                             <li data-item="ks_kpi">

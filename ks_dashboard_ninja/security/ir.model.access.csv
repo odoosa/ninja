@@ -13,6 +13,10 @@ access_ks_dashboard_ninja_item_goal,ks_dashboard_ninja_item_goal,model_ks_dashbo
 access_ks_dashboard_ninja_item_action,ks_dashboard_ninja_item_action,model_ks_dashboard_ninja_item_action,,1,1,1,1
 access_ks_dashboard_item_multiplier,ks_dashboard_item.multiplier,model_ks_dashboard_item_multiplier,,1,1,1,1
 access_ks_ninja_dashboard_item_action,ks_ninja_dashboard.item_action,model_ks_ninja_dashboard_item_action,,1,1,1,0
+access_ks_dashboard_group_by,ks.dashboard.group.by,model_ks_dashboard_group_by,,1,1,1,1
+access_ks_dashboard_csv_group_by,ks.dashboard.csv.group.by,model_ks_dashboard_csv_group_by,,1,1,1,1
+access_ks_dashboard_new,ks.dashboard.new,model_ks_dashboard_new,,1,1,1,1
+access_ks_dashboard_csv_new,ks.dashboard.csv.new,model_ks_dashboard_csv_new,,1,1,1,1
 access_ks_dashboard_ninja_import,ks_dashboard_ninja.import,model_ks_dashboard_ninja_import,base.group_system,1,1,1,0
 access_ir_actions_act_window_view,ir.actions.act_window.view,base.model_ir_actions_act_window_view,,1,0,0,0
 access_ir_actions_act_window,ir.actions.act_window,base.model_ir_actions_act_window,,1,0,0,0
@@ -25,3 +29,7 @@ access_ir_model_fields_group_user,ir.model.fields,base.model_ir_model_fields,bas
 access_ir_model_ks_dashboard_wizard,ks_dashboard_wizard,model_ks_dashboard_wizard,,1,1,1,1
 access_ir_model_ks_duplicate_dashboard_wizard,ks_duplicate_dashboard__wizard,model_ks_dashboard_duplicate_wizard,,1,1,1,1
 access_ir_model_ks_delete_dashboard_wizard,ks_delete_dashboard__wizard,model_ks_dashboard_delete_wizard,,1,1,1,1
+
+access_ks_dashboard_ninja_arti_int,ks_dashboard_ninja.arti_int,model_ks_dashboard_ninja_arti_int,,1,1,1,1
+access_ks_dashboard_ninja_ai_dashboard,ks_dashboard_ninja.ai_dashboard,model_ks_dashboard_ninja_ai_dashboard,,1,1,1,1
+access_ks_dashboard_ninja_fetch_key,ks_dashboard_ninja.fetch_key,model_ks_dashboard_ninja_fetch_key,,1,1,1,1

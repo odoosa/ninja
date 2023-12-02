@@ -94,7 +94,7 @@ Best Odoo Dashboard Apps
 
 	'currency': 'EUR',
 
-	'price': '119.75',
+	'price': '104.3',
 
 	'website': 'https://store.ksolves.com/',
 
@@ -108,7 +108,7 @@ Best Odoo Dashboard Apps
 
 	'support': 'sales@ksolves.com',
 
-	'images': ['static/description/Dasboard Ninja banner.gif'],
+	'images': ['static/description/Top odoo -Ksolves Diwali SALE.gif'],
 
 	'depends': ['ks_dashboard_ninja', 'mail'],
 

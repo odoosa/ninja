@@ -8,7 +8,7 @@ odoo.define('ks_dashboard_ninja_list_tv.ks_dashboard_graph_preview', function (r
 
         _render: function(){
             this.$el.empty();
-            if (this.recordData.ks_dashboard_item_type !== 'ks_tile' && this.recordData.ks_dashboard_item_type !== 'ks_kpi' && this.recordData.ks_dashboard_item_type !== 'ks_list_view') {
+            if (this.recordData.ks_dashboard_item_type !== 'ks_flower_view' && this.recordData.ks_dashboard_item_type !== 'ks_tile' && this.recordData.ks_dashboard_item_type !== 'ks_kpi' && this.recordData.ks_dashboard_item_type !== 'ks_list_view' && this.recordData.ks_dashboard_item_type !== 'ks_to_do' && this.recordData.ks_dashboard_item_type !== 'ks_funnel_chart' && this.recordData.ks_dashboard_item_type !== 'ks_radialBar_chart' && this.recordData.ks_dashboard_item_type !== 'ks_bullet_chart' && this.recordData.ks_dashboard_item_type !== 'ks_map_view') {
                 if(this.recordData.ks_data_calculation_type !== "query"){
                     this._super.apply(this, arguments);
                 }

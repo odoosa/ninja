@@ -75,16 +75,23 @@ odoo.define('ks_dashboard_ninja_list.ks_dashboard_graph_preview', function(requi
 
         _render: function() {
             this.$el.empty()
-            if (this.recordData.ks_dashboard_item_type !== 'ks_tile' && this.recordData.ks_dashboard_item_type !== 'ks_kpi' && this.recordData.ks_dashboard_item_type !== 'ks_list_view' && this.recordData.ks_dashboard_item_type !== 'ks_to_do') {
+            if (this.recordData.ks_dashboard_item_type !== 'ks_flower_view' && this.recordData.ks_dashboard_item_type !== 'ks_tile' && this.recordData.ks_dashboard_item_type !== 'ks_kpi' && this.recordData.ks_dashboard_item_type !== 'ks_list_view' && this.recordData.ks_dashboard_item_type !== 'ks_to_do' && this.recordData.ks_dashboard_item_type !== 'ks_funnel_chart' && this.recordData.ks_dashboard_item_type !== 'ks_radialBar_chart' && this.recordData.ks_dashboard_item_type !== 'ks_bullet_chart' && this.recordData.ks_dashboard_item_type !== 'ks_map_view') {
                 if (this.recordData.ks_model_id) {
                     if (this.recordData.ks_chart_groupby_type == 'date_type' && !this.recordData.ks_chart_date_groupby) {
                         return this.$el.append($('<div>').text("Select Group by date to create chart based on date groupby"));
-                    } else if (this.recordData.ks_chart_data_count_type === "count" && !this.recordData.ks_chart_relation_groupby) {
+                    } else if (this.recordData.ks_dashboard_item_type !== 'ks_scatter_chart'&& this.recordData.ks_chart_data_count_type === "count" && !this.recordData.ks_chart_relation_groupby) {
                         this.$el.append($('<div>').text("Select Group By to create chart view"));
-                    } else if (this.recordData.ks_chart_data_count_type !== "count" && (this.recordData.ks_chart_measure_field.count === 0 || !this.recordData.ks_chart_relation_groupby)) {
+                    } else if (this.recordData.ks_dashboard_item_type !== 'ks_scatter_chart' && this.recordData.ks_chart_data_count_type !== "count" && (this.recordData.ks_chart_measure_field.count === 0 || !this.recordData.ks_chart_relation_groupby)) {
                         this.$el.append($('<div>').text("Select Measure and Group By to create chart view"));
-                    } else if (!this.recordData.ks_chart_data_count_type) {
+                    } else if (this.recordData.ks_dashboard_item_type !== 'ks_scatter_chart' && !this.recordData.ks_chart_data_count_type) {
                         this.$el.append($('<div>').text("Select Chart Data Count Type"));
+                    }
+                    else if(this.recordData.ks_dashboard_item_type === "ks_scatter_chart"){
+                        if(this.recordData.ks_scatter_measure_x_id && this.recordData.ks_scatter_measure_y_id ){
+                            this._getChartData();
+                        }else{
+                            this.$el.append($('<div>').text("Please Choose Model ,Measure-X , Measure-Y"));
+                        }
                     } else {
                         this._getChartData();
                     }
@@ -175,12 +182,16 @@ odoo.define('ks_dashboard_ninja_list.ks_dashboard_graph_preview', function(requi
                 case "pie":
                 case "doughnut":
                 case "polarArea":
+                case "radar":
                     this.chart_family = "circle";
                     break;
                 case "bar":
                 case "horizontalBar":
                 case "line":
                 case "area":
+                    this.chart_family = "square"
+                    break;
+                case "scatter":
                     this.chart_family = "square"
                     break;
                 default:
@@ -199,7 +210,7 @@ odoo.define('ks_dashboard_ninja_list.ks_dashboard_graph_preview', function(requi
             }
         },
 
-        renderChart: function() {
+        renderChart: async function() {
             var self = this;
             if (this.recordData.ks_chart_measure_field_2.count && this.recordData.ks_dashboard_item_type === 'ks_bar_chart') {
                 var self = this;
@@ -249,6 +260,14 @@ odoo.define('ks_dashboard_ninja_list.ks_dashboard_graph_preview', function(requi
             if (this.recordData.ks_show_data_value) {
                 chart_plugin.push(ChartDataLabels);
             }
+             if (this.recordData.ks_dashboard_item_type =="ks_scatter_chart"){
+                var scatter_data = []
+                for (let i = 0 ; i<this.chart_data['labels'].length ; i++){
+                    scatter_data.push({"label":this.chart_data['labels'][i],"data":[{'x':this.chart_data['labels'][i],'y':this.chart_data.datasets[0].data[i]}]})
+                    }
+                Object.assign(this.chart_data.datasets,scatter_data)
+            }
+
             this.ksMyChart = new Chart($.find('#ksMyChart')[0], {
                 type: this.chart_type === "area" ? "line" : this.chart_type,
                 plugins: chart_plugin,
@@ -416,12 +435,14 @@ odoo.define('ks_dashboard_ninja_list.ks_dashboard_graph_preview', function(requi
                 case "pie":
                 case "doughnut":
                 case "polarArea":
+                case "radar":
                     var datasets = ksMyChart.config.data.datasets[0];
                     var setsCount = datasets.data.length;
                     break;
                 case "bar":
                 case "horizontalBar":
                 case "line":
+                case "scatter":
                     var datasets = ksMyChart.config.data.datasets;
                     var setsCount = datasets.length;
                     break;
@@ -475,8 +496,20 @@ odoo.define('ks_dashboard_ninja_list.ks_dashboard_graph_preview', function(requi
 
                 }
                 for (var i = 0; i < datasets.length; i++) {
-                    datasets[i].backgroundColor = chartColors;
-                    datasets[i].borderColor = "rgba(255,255,255,1)";
+                    if (chartType === "radar"){
+                        datasets[i].borderColor = chartColors[i];
+                        datasets[i]['datalabels'] = {
+                            backgroundColor: chartColors,
+                        }
+                    } else{
+                        datasets[i].backgroundColor = chartColors;
+                        datasets[i].borderColor = "rgba(255,255,255,1)";
+                    }
+                    switch (ksChartType) {
+                        case "radar":
+                            datasets[i].borderColor = chartColors[i];
+                            break;
+                    }
                 }
                 if (this.recordData.ks_semi_circle_chart && (chartType === "pie" || chartType === "doughnut")) {
                     options.rotation = 1 * Math.PI;
@@ -491,17 +524,21 @@ odoo.define('ks_dashboard_ninja_list.ks_dashboard_graph_preview', function(requi
 
                 options.plugins.datalabels.formatter = function(value, ctx) {
                     var ks_self = self;
-                    var ks_selection = self.chart_data.ks_selection;
-                    if (ks_selection === 'monetary') {
-                        var ks_currency_id = self.chart_data.ks_currency;
-                        var ks_data = KsGlobalFunction._onKsGlobalFormatter(value, self.recordData.ks_data_format, self.recordData.ks_precision_digits);
-                            ks_data = KsGlobalFunction.ks_monetary(ks_data, ks_currency_id);
-                        return ks_data;
-                    } else if (ks_selection === 'custom') {
-                        var ks_field = self.chart_data.ks_field;
-                        return KsGlobalFunction._onKsGlobalFormatter(value, self.recordData.ks_data_format, self.recordData.ks_precision_digits) + ' ' + ks_field;
-                    }else {
-                        return KsGlobalFunction._onKsGlobalFormatter(value, self.recordData.ks_data_format, self.recordData.ks_precision_digits);
+                    if(self.recordData.ks_dashboard_item_type != "ks_scatter_chart"){
+                        var ks_selection = self.chart_data.ks_selection;
+                        if (ks_selection === 'monetary') {
+                            var ks_currency_id = self.chart_data.ks_currency;
+                            var ks_data = KsGlobalFunction._onKsGlobalFormatter(value, self.recordData.ks_data_format, self.recordData.ks_precision_digits);
+                                ks_data = KsGlobalFunction.ks_monetary(ks_data, ks_currency_id);
+                            return ks_data;
+                        } else if (ks_selection === 'custom') {
+                            var ks_field = self.chart_data.ks_field;
+                            return KsGlobalFunction._onKsGlobalFormatter(value, self.recordData.ks_data_format, self.recordData.ks_precision_digits) + ' ' + ks_field;
+                        }else {
+                            return KsGlobalFunction._onKsGlobalFormatter(value, self.recordData.ks_data_format, self.recordData.ks_precision_digits);
+                        }
+                    }else{
+                        return null
                     }
                 };
 
@@ -547,23 +584,25 @@ odoo.define('ks_dashboard_ninja_list.ks_dashboard_graph_preview', function(requi
                         }
                     }
                 }
-                options.tooltips.callbacks = {
-                    label: function(tooltipItem, data) {
-                        var ks_self = self;
-                        var k_amount = data.datasets[tooltipItem.datasetIndex]['data'][tooltipItem.index];
-                        var ks_selection = ks_self.chart_data.ks_selection;
-                        if (ks_selection === 'monetary') {
-                            var ks_currency_id = ks_self.chart_data.ks_currency;
-                            k_amount = KsGlobalFunction.ks_monetary(k_amount, ks_currency_id);
-                            return data.datasets[tooltipItem.datasetIndex]['label'] + " : " + k_amount
-                        } else if (ks_selection === 'custom') {
-                            var ks_field = ks_self.chart_data.ks_field;
-                            // ks_type = field_utils.format.char(ks_field);
-                            k_amount = field_utils.format.float(k_amount, Float64Array, {digits: [0, self.recordData.ks_precision_digits]});
-                            return data.datasets[tooltipItem.datasetIndex]['label'] + " : " + k_amount + " " + ks_field;
-                        } else {
-                            k_amount = field_utils.format.float(k_amount, Float64Array, {digits:[0,self.recordData.ks_precision_digits]});
-                            return data.datasets[tooltipItem.datasetIndex]['label'] + " : " + k_amount
+                if (chartType !== 'scatter'){
+                    options.tooltips.callbacks = {
+                        label: function(tooltipItem, data) {
+                            var ks_self = self;
+                            var k_amount = data.datasets[tooltipItem.datasetIndex]['data'][tooltipItem.index];
+                            var ks_selection = ks_self.chart_data.ks_selection;
+                            if (ks_selection === 'monetary') {
+                                var ks_currency_id = ks_self.chart_data.ks_currency;
+                                k_amount = KsGlobalFunction.ks_monetary(k_amount, ks_currency_id);
+                                return data.datasets[tooltipItem.datasetIndex]['label'] + " : " + k_amount
+                            } else if (ks_selection === 'custom') {
+                                var ks_field = ks_self.chart_data.ks_field;
+                                // ks_type = field_utils.format.char(ks_field);
+                                k_amount = field_utils.format.float(k_amount, Float64Array, {digits: [0, self.recordData.ks_precision_digits]});
+                                return data.datasets[tooltipItem.datasetIndex]['label'] + " : " + k_amount + " " + ks_field;
+                            } else {
+                                k_amount = field_utils.format.float(k_amount, Float64Array, {digits:[0,self.recordData.ks_precision_digits]});
+                                return data.datasets[tooltipItem.datasetIndex]['label'] + " : " + k_amount
+                            }
                         }
                     }
                 }
@@ -584,6 +623,12 @@ odoo.define('ks_dashboard_ninja_list.ks_dashboard_graph_preview', function(requi
                                 datasets[i].borderColor = "rgba(255,255,255,0)";
                                 options.scales.xAxes[0].stacked = this.recordData.ks_bar_chart_stacked;
                                 options.scales.yAxes[0].stacked = this.recordData.ks_bar_chart_stacked;
+                            }
+                            break;
+                        case "scatter":
+                            datasets[i].backgroundColor = chartColors[i];
+                            datasets[i]['datalabels'] = {
+                                backgroundColor: chartColors[i],
                             }
                             break;
                         case "line":

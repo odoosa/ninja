@@ -396,9 +396,15 @@ class KsDashboardNinjaBoard(models.Model):
             'ks_dashboard_item_type': rec.ks_dashboard_item_type,
             'ks_chart_item_color': rec.ks_chart_item_color,
             'ks_chart_groupby_type': rec.ks_chart_groupby_type,
+            'ks_chart_measure_field': rec.ks_chart_measure_field.ids,
+            'ks_chart_measure_field_2': rec.ks_chart_measure_field_2.ids,
             'ks_chart_relation_groupby': rec.ks_chart_relation_groupby.id,
             'ks_chart_relation_groupby_name': rec.ks_chart_relation_groupby.name,
             'ks_chart_date_groupby': rec.ks_chart_date_groupby,
+            'ks_chart_sub_groupby_type': rec.ks_chart_sub_groupby_type,
+            'ks_chart_relation_sub_groupby': rec.ks_chart_relation_sub_groupby.id,
+            'ks_chart_relation_sub_groupby_name': rec.ks_chart_relation_sub_groupby.name,
+            'ks_chart_date_sub_groupby': rec.ks_chart_date_sub_groupby,
             'ks_record_field': rec.ks_record_field.id if rec.ks_record_field else False,
             'ks_chart_data': rec._ks_get_chart_data(item_domain1),
             'ks_list_view_data': rec._ksGetListViewData(item_domain1),
@@ -422,6 +428,7 @@ class KsDashboardNinjaBoard(models.Model):
             'max_sequnce': len(rec.ks_action_lines) if rec.ks_action_lines else False,
             'action': action,
             'ks_hide_legend': rec.ks_hide_legend,
+            'ks_radial_legend': rec.ks_radial_legend,
             'ks_data_calculation_type': rec.ks_data_calculation_type,
             'ks_export_all_records': rec.ks_export_all_records,
             'ks_data_formatting': rec.ks_data_format,
@@ -443,6 +450,16 @@ class KsDashboardNinjaBoard(models.Model):
             'ks_as_of_now': rec.ks_as_of_now,
             'ks_info': rec.ks_info,
             'ks_company': rec.ks_company_id.name if rec.ks_company_id else False,
+            'ks_flower_item_color': rec.ks_flower_item_color,
+            'ks_radial_item_color': rec.ks_radial_item_color,
+            'ks_funnel_record_field': rec.ks_funnel_record_field,
+            'ks_funnel_item_color': rec.ks_funnel_item_color,
+            'ks_bounds': rec.ks_bounds,
+            'ks_partners_map': rec.ks_partners_map,
+            'ks_map_record_field': rec.ks_map_record_field,
+            'ks_scatter_measure_x_id': rec.ks_scatter_measure_x_id,
+            'ks_scatter_measure_y_id': rec.ks_scatter_measure_y_id,
+            'ks_is_scatter_group': rec.ks_is_scatter_group,
 
         }
         return item
@@ -719,6 +736,14 @@ class KsDashboardNinjaBoard(models.Model):
             'ks_multiplier_lines': ks_multiplier_lines if ks_multiplier_lines else False,
             'ks_data_label_type': rec.ks_data_label_type,
             'ks_as_of_now': rec.ks_as_of_now,
+            'ks_radial_legend': rec.ks_radial_legend,
+            'ks_funnel_item_color':rec.ks_funnel_item_color,
+            'ks_country_id': rec.ks_country_id.id,
+            'ks_bounds': rec.ks_bounds,
+            'ks_partners_map': rec.ks_partners_map,
+            'ks_scatter_measure_x_id': rec.ks_chart_relation_groupby.name,
+            'ks_scatter_measure_y_id': ks_chart_measure_field,
+            'ks_is_scatter_group': rec.ks_is_scatter_group,
         }
         if grid_corners:
             item.update({
@@ -1127,6 +1152,23 @@ class KsDashboardNinjaBoard(models.Model):
                     item['ks_chart_relation_sub_groupby'] = ks_chart_relation_sub_groupby.id
                 else:
                     item['ks_chart_relation_sub_groupby'] = False
+
+            if item['ks_dashboard_item_type'] == "ks_scatter_chart" and item['ks_scatter_measure_y_id'] and item[
+                'ks_scatter_measure_x_id']:
+                ks_scatter_id = self.env['ir.model.fields'].search(
+                    [('name', '=', item['ks_scatter_measure_y_id'][0]), ('model', '=', item['ks_model_id'])])
+                if ks_scatter_id:
+                    item['ks_scatter_measure_y_id'] = ks_scatter_id.id
+                ks_scatter_group_by = item['ks_scatter_measure_x_id']
+                ks_record_id = self.env['ir.model.fields'].search(
+                    [('name', '=', ks_scatter_group_by), ('model', '=', item['ks_model_id'])])
+                if ks_record_id:
+                    item['ks_scatter_measure_x_id'] = ks_record_id.id
+                else:
+                    item['ks_scatter_measure_x_id'] = False
+            if item["ks_dashboard_item_type"] != "ks_scatter_chart":
+                item['ks_scatter_measure_x_id'] = False
+                item['ks_scatter_measure_y_id'] = False
 
             # Sort by field : Many2one Entery
             if item['ks_sort_by_field']:
